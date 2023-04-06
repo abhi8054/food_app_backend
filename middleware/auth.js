@@ -16,6 +16,7 @@ module.exports =  (req,res,next) =>{
             if(secret_key === process.env.SECRET_KEY){
                 try{
                     const isValid = jwt.verify(token.split(" ").pop(),process.env.SECRET_KEY)
+                    req.token = isValid
                     next()
                 }catch(err) {
                     console.log(err.message)
