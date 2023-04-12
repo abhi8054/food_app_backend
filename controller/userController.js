@@ -1,5 +1,7 @@
+const { default: mongoose } = require("mongoose")
 const common = require("../config/common")
 const userModel = require("../model/user")
+const userForgotModel = require("../model/userForgotPassword")
 
 
 const user_register = async (req,res) =>{
@@ -14,7 +16,8 @@ const user_register = async (req,res) =>{
             })
             const save = await doc.save()
             if(save){
-                common.send_email(email)
+                const content = `<h1>Welcome to our app</h1> <p>Regards</p> <p>Food App</p>`
+                common.send_email(email,content)
                 .then(result =>{
                     common.send_response(res,1,"User Registered successfully and Email is sent",null)
                 }).catch(err =>{
@@ -66,8 +69,112 @@ const user_test = (req,res) => {
     console.log(req.body)
 }
 
+const user_forgot_password = async (req,res) =>{
+    const {email} = req.body
+    if(!email){
+        common.send_response(res,0,"Email is Required",null)
+    }else{
+        const code = common.random_code(8)
+        const content = `<h3>Below Forgot Link</h3> <a href="http://localhost:5000/user/forgot_password_form/${code}">Click Here </a> `
+        common.send_email(email,content)
+        .then(async result =>{
+            const doc = new userForgotModel({
+                code:code,
+                email:email
+            })
+            try{
+                const forgotData = await doc.save() 
+                common.send_response(res,1,"Forgot Password link is Sent",forgotData)
+            }catch(err){
+                console.log(err)
+                common.send_response(res,0,"Something Went Wrong",null)
+            }
+        }).catch(err =>{
+            console.log(err)
+            common.send_response(res,0,"Problem in sending Email",null)
+        })
+    }
+}
+
+const forgot_password_form = async (req,res) =>{
+    const {code} = req.params
+    const linkInfo = await userForgotModel.findOne({
+        code:code,
+        status:false
+    })
+    if(linkInfo !== null){
+        if(new Date(linkInfo.expire) > new Date()){
+            res.render("./form.ejs",{
+                code:code,
+                email:linkInfo.email,
+                err:""
+            })
+        }else{
+            res.render("./message.ejs",{
+                message:"Link is Expire"
+            })
+        }
+    }else{
+        res.render("./message.ejs",{
+            message:"Link is Used"
+        })
+    }
+}
+
+const update_forgot_password = async (req,res) =>{
+    const {password,confirm,code,email} = req.body
+    if(!password || !confirm){
+        res.render("./form.ejs",{
+            code:code,
+            err:"Fields required"
+        })
+    }else{
+        if(password !== confirm){
+            res.render("./form.ejs",{
+                code:code,
+                err:"New Password or Confirm Password not match"
+            })
+        }else{
+            const hash_password = await common.encrypt_password(password)
+            try{
+                const updatePass = await userModel.findOneAndUpdate(
+                    {email:email},
+                    {
+                        password:hash_password,
+                    },
+                    {new:true}
+                )
+                try{
+                    const updateStatus = await userForgotModel.findOneAndUpdate(
+                        {code:code,email:email},
+                        {
+                            status:true,
+                        },
+                        {new:true}
+                    )
+                    res.render("./message.ejs",{
+                        message:"Password Change Success. You can leave the page"
+                    })
+                }catch(err){
+                    console.log(err)
+                    res.render("./message.ejs",{
+                        message:"Something went wrong"
+                    })
+                }
+            }catch(err){
+                console.log(err)
+                res.render("./message.ejs",{
+                    message:"Something went wrong"
+                })
+            }
+        }
+    }
+}
 module.exports = {
     user_register,
     user_login,
-    user_test
+    user_test,
+    user_forgot_password,
+    forgot_password_form,
+    update_forgot_password
 }

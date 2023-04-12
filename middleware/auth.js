@@ -2,10 +2,16 @@ const jwt = require("jsonwebtoken")
 const common = require("../config/common")
 
 module.exports =  (req,res,next) =>{
-    
-    const public_url = ["/user/register","/user/login"]
-
-    if(public_url.includes(req.path)){
+    const public_url = [
+        "register",
+        "login",
+        "forgot_password",
+        "forgot_password_form",
+        "update_forgot_password",
+        "success.ejs"
+    ]
+    let path = req.path.split("/")
+    if(public_url.includes(path[2])){
         next()
     }else{
         const secret_key = req.headers['secret_key']

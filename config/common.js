@@ -51,7 +51,7 @@ const generate_token = (request_data) =>{
 }
 
 
-const send_email = (email) =>{
+const send_email = (email,content) =>{
     return new Promise((resolve,reject) =>{      
         const transporter = nodeMailer.createTransport({
         service: 'gmail',
@@ -69,9 +69,7 @@ const send_email = (email) =>{
             from: process.env.EMAIL,
             to: email,
             subject: 'WELCOME',
-            html: `<h1>Welcome to our app</h1>
-                    <p>Regards</p>
-                    <p>Food App</p>`
+            html: content
         };
       
         transporter.sendMail(mailOptions, (error, info) => {
@@ -85,10 +83,37 @@ const send_email = (email) =>{
     });
 }
 
+const random_code = (length) =>{
+    const string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+    let code = ""
+    for(let i = 0; i < length; i++){
+        code += string[Math.floor(Math.random() * 10)]
+    }
+    return code
+}
+
+const formatDateTime = (datetime) => {
+    var dd = datetime.getDate();
+    var mm = datetime.getMonth() + 1;
+    var yyyy = datetime.getFullYear();
+    var hr = datetime.getHours();
+    var min = datetime.getMinutes();
+    var sec = datetime.getSeconds();
+    if (dd < 10) { dd = '0' + dd }
+    if (mm < 10) { mm = '0' + mm }
+    if (hr < 10) { hr = '0' + hr }
+    if (min < 10) { min = '0' + min }
+    if (sec < 10) { sec = '0' + sec }
+    datetime = yyyy + '-' + mm + '-' + dd + 'T' + hr + ':' + min + ':' + sec;
+    return datetime
+}
+
 module.exports = {
     send_response,
     send_email,
     encrypt_password,
     decrypt_password,
     generate_token,
+    random_code,
+    formatDateTime
 }
