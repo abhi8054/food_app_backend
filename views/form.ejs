@@ -10,21 +10,29 @@
 <body>
     <div class="container">
         <div class="wrapper">
-            <div>
-                <h1>Change Your Password</h1>
+            <div class="title">
+                <h1>Change your Password</h1>
             </div>
-            <form action="/user/update_forgot_password" method="post">
-                <input type="text" name="password"/>
-                <input type="text" name="confirm"/>
+            <form class="form" action="/user/update_forgot_password" method="post">
+                <div class="field">
+                    <input type="text" required name="password"/>
+                    <label>New Password</label>
+                </div>
+                <div class="field">
+                    <input type="text" required name="confirm"/>
+                    <label>Confirm Password</label>
+                </div>
                 <input type="hidden" name="code" value="<%= code %>"/>
                 <input type="hidden" name="email" value="<%= email %>"/>
                 <button type="submit">Submit</button>
             </form>
-            <% if(err){ %>
-                <div>
-                    <h1> <%= err %></h1>
-                </div>
-             <% } %>
+            <div class="error">
+                <% if(err){ %>
+                    <div>
+                        <h1> <%= err %></h1>
+                    </div>
+                 <% } %>
+            </div>
         </div>
     </div>
 </body>

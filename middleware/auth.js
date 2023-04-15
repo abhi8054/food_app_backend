@@ -7,8 +7,7 @@ module.exports =  (req,res,next) =>{
         "login",
         "forgot_password",
         "forgot_password_form",
-        "update_forgot_password",
-        "success.ejs"
+        "update_forgot_password"
     ]
     let path = req.path.split("/")
     if(public_url.includes(path[2])){
@@ -26,7 +25,7 @@ module.exports =  (req,res,next) =>{
                     next()
                 }catch(err) {
                     console.log(err.message)
-                    common.send_response(res,0,"Access Denied",null)
+                    common.send_response(res,0,"Token Expire",null)
                 }
             }else{
                 common.send_response(res,0,"Access Denied",null)

@@ -1,4 +1,3 @@
-const { default: mongoose } = require("mongoose")
 const common = require("../config/common")
 const userModel = require("../model/user")
 const userForgotModel = require("../model/userForgotPassword")
@@ -74,25 +73,32 @@ const user_forgot_password = async (req,res) =>{
     if(!email){
         common.send_response(res,0,"Email is Required",null)
     }else{
-        const code = common.random_code(8)
-        const content = `<h3>Below Forgot Link</h3> <a href="http://localhost:5000/user/forgot_password_form/${code}">Click Here </a> `
-        common.send_email(email,content)
-        .then(async result =>{
-            const doc = new userForgotModel({
-                code:code,
-                email:email
-            })
-            try{
-                const forgotData = await doc.save() 
-                common.send_response(res,1,"Forgot Password link is Sent",forgotData)
-            }catch(err){
-                console.log(err)
-                common.send_response(res,0,"Something Went Wrong",null)
-            }
-        }).catch(err =>{
-            console.log(err)
-            common.send_response(res,0,"Problem in sending Email",null)
+        const emailInfo = await userModel.findOne({
+            email:email
         })
+        if(emailInfo !== null){
+            const code = common.random_code(8)
+            const content = `<h3>Below Forgot Link</h3> <a href="http://localhost:5000/user/forgot_password_form/${code}">Click Here </a> `
+            common.send_email(email,content)
+            .then(async result =>{
+                const doc = new userForgotModel({
+                    code:code,
+                    email:email
+                })
+                try{
+                    const forgotData = await doc.save() 
+                    common.send_response(res,1,"Forgot Password link is Sent",forgotData)
+                }catch(err){
+                    console.log(err)
+                    common.send_response(res,0,"Something Went Wrong",null)
+                }
+            }).catch(err =>{
+                console.log(err)
+                common.send_response(res,0,"Problem in sending Email",null)
+            })
+        }else{
+            common.send_response(res,0,"Email is not Registered",null)
+        }
     }
 }
 
@@ -125,6 +131,7 @@ const update_forgot_password = async (req,res) =>{
     const {password,confirm,code,email} = req.body
     if(!password || !confirm){
         res.render("./form.ejs",{
+            email:email,
             code:code,
             err:"Fields required"
         })
@@ -132,6 +139,7 @@ const update_forgot_password = async (req,res) =>{
         if(password !== confirm){
             res.render("./form.ejs",{
                 code:code,
+                email:email,
                 err:"New Password or Confirm Password not match"
             })
         }else{
