@@ -70,3 +70,9 @@ body{
     padding: 0.7rem;
     cursor: pointer;
 }
+.error{
+    margin-top: 2rem;
+}
+.error h1,.error__message h1{
+    color: #A4B0F5;
+}
